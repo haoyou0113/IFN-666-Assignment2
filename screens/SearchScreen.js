@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Keyboard,
   TextInput,
-  ScrollView,
   FlatList,
   Text /* include other react native components here as needed */,
 } from 'react-native';
@@ -15,32 +14,67 @@ import { scaleSize } from '../constants/Layout';
 import { Ionicons } from '@expo/vector-icons';
 
 // FixMe: implement other components and functions used in SearchScreen here (don't just put all the JSX in SearchScreen below)
+const SearchBar = (props) => {
+  const { setSearchInput } = props;
 
+  function debounce(fn, delay) {
+    let timer = null; //借助闭包
+    return function () {
+      let args = arguments;
+      if (timer) {
+        clearTimeout(timer); //进入该分支语句，说明当前正在一个计时过程中，并且又触发了相同事件。所以要取消当前的计时，重新开始计时
+        timer = setTimeout(fn(...args), delay);
+      } else {
+        timer = setTimeout(fn(...args), delay); // 进入该分支说明当前并没有在计时，那么就开始一个计时
+      }
+    };
+  }
+  const onChange = debounce((text) => {
+    console.log(text);
+    if (text) {
+      setSearchInput(text);
+    } else {
+      setSearchInput(null);
+    }
+  }, 200);
+  return (
+    <View>
+      <Text style={{ fontSize: 15, color: 'white' }}>
+        Type a company name or stock symbol:
+      </Text>
+      <View style={styles.searchBar}>
+        <Ionicons
+          style={{ padding: 7 }}
+          name='ios-search'
+          size={20}
+          color='white'
+        />
+        <TextInput
+          style={styles.input}
+          onChangeText={onChange}
+          placeholder={'Search'}
+          defaultValue={''}
+          autoCorrect={true}
+          autoFocus={true}
+        />
+      </View>
+    </View>
+  );
+};
 export default function SearchScreen({ navigation }) {
   const { ServerURL, addToWatchlist } = useStocksContext();
-  const [state, setState] = useState([
-    {
-      /* FixMe: initial state here */
-      symbol: 'symbol',
-      name: 'name',
-    },
-  ]);
-  console.log(state);
+  const [state, setState] = useState([]);
+  const [dataDisplayed, setDataDisplayed] = useState([]);
+  const [searchInput, setSearchInput] = useState('');
+
   // can put more code here
-  const SearchBar = () => {
-    return (
-      <View>
-        <Text style={styles.text}>Please </Text>
-        <TextInput style={styles.input} defaultValue='You can type in me' />
-      </View>
-    );
-  };
+
   const SearchItem = (props) => {
     const { symbol, name } = props.item;
     return (
       <TouchableOpacity
         onPress={() => {
-          addList(item.symbol);
+          addToWatchlist(symbol);
           navigation.navigate('Stocks');
         }}
       >
@@ -50,7 +84,6 @@ export default function SearchScreen({ navigation }) {
     );
   };
   useEffect(() => {
-    const URL = 'http://131.181.190.87:3001/all';
     // FixMe: fetch symbol names from the server and save in local SearchScreen state
     fetch(`${ServerURL}/all`)
       .then((data) => data.json())
@@ -61,19 +94,24 @@ export default function SearchScreen({ navigation }) {
       )
       .then((data) => setState(data));
   }, []);
-
+  useEffect(() => {
+    if (searchInput !== null) {
+      const resultFromSymbol = state.filter(
+        (item) =>
+          item.symbol.includes(searchInput) || item.name.includes(searchInput)
+      );
+      setDataDisplayed(resultFromSymbol);
+    } else {
+      setDataDisplayed([]);
+    }
+  }, [searchInput]);
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
         {/* FixMe: add children here! */}
-        <SearchBar></SearchBar>
-        {/* <ScrollView>
-          {state.map((item) => (
-            <SearchItem item={item} key={item.name} />
-          ))}
-        </ScrollView> */}
+        <SearchBar setSearchInput={setSearchInput}></SearchBar>
         <FlatList
-          data={state}
+          data={dataDisplayed}
           renderItem={SearchItem}
           keyExtractor={(item) => item.name}
         ></FlatList>
@@ -87,9 +125,21 @@ const styles = StyleSheet.create({
   text: {
     color: '#fff',
   },
+  searchBar: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#1e1e1e',
+    borderRadius: 10,
+  },
   input: {
+    flex: 1,
+    paddingTop: scaleSize(10),
+    paddingRight: scaleSize(10),
+    paddingBottom: scaleSize(10),
+    paddingLeft: scaleSize(0),
+    backgroundColor: '#1e1e1e',
     color: '#fff',
-    height: 40,
   },
   item: {
     color: '#fff',

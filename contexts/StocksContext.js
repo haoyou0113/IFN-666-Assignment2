@@ -21,9 +21,12 @@ export const useStocksContext = () => {
   function addToWatchlist(newSymbol) {
     //FixMe: add the new symbol to the watchlist, save it in useStockContext state and persist to AsyncStorage
   }
-
+  const stateName = 'stocks123123';
   useEffect(() => {
     // FixMe: Retrieve watchlist from persistent storage
+    AsyncStorage.getItem(stateName)
+      .then((savedString) => JSON.parse(savedString))
+      .then((savedStocks) => savedStocks && setState(savedStocks));
   }, []);
 
   return {
