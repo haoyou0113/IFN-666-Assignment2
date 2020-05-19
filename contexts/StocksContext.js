@@ -15,10 +15,19 @@ export const StocksProvider = ({ children }) => {
 
 export const useStocksContext = () => {
   const [state, setState] = useContext(StocksContext);
+  // const [newSymbol, setNewSymbol] = useState('');
 
   // can put more code here
 
   function addToWatchlist(newSymbol) {
+    if (state.indexOf(newSymbol) === -1) {
+      const newSymbols = [...state, newSymbol];
+      setState((state) => [...state, newSymbol]);
+      AsyncStorage.setItem(stateName, JSON.stringify(newSymbols));
+    } else {
+      alert('1');
+    }
+
     //FixMe: add the new symbol to the watchlist, save it in useStockContext state and persist to AsyncStorage
   }
   const stateName = 'stocks123123';
