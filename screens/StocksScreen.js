@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   FlatList,
   ScrollView,
+  AsyncStorage,
   Text /* include other react-native components here as needed */,
 } from 'react-native';
 import { useStocksContext } from '../contexts/StocksContext';
@@ -14,14 +15,19 @@ import { scaleSize } from '../constants/Layout';
 
 export default function StocksScreen({ route }) {
   const { ServerURL, watchList } = useStocksContext();
-  const [state, setState] = useState([]);
+  const [localList, setLocalList] = useState([]);
+  const [state, setState] = useState(watchList);
   const [watchData, setWatchData] = useState([]);
   const [curDetail, setCurDetail] = useState('');
   const [detailStock, setDetailStock] = useState([]);
 
   console.log('watchList', watchList);
   console.log('watchData', watchData);
+
   // can put more code here
+  const clearAsyncStorage = async () => {
+    AsyncStorage.clear();
+  };
   const StockDetail = (curDetail) => {
     return (
       <View style={styles.detail}>
@@ -31,61 +37,83 @@ export default function StocksScreen({ route }) {
         <Text style={styles.detailItem}>CLOSE</Text>
         <Text style={styles.detailItem}>HIGH</Text>
         <Text style={styles.detailItem}>VOLUME</Text>
+        <TouchableOpacity onPress={clearAsyncStorage}>
+          <Text style={styles.detailItem}>clear</Text>
+        </TouchableOpacity>
       </View>
     );
   };
   const StockItem = (props) => {
-    console.log(props);
     const { symbol, close, open } = props.item;
     return (
       <TouchableOpacity
         style={styles.stockItem}
-        onPress={(e) => {
-          console.log(e);
-          setCurDetail(e.target.innerText);
+        onPress={() => {
+          console.log(symbol);
         }}
       >
         <Text style={styles.stockItemSymbol}>{symbol}</Text>
         <Text style={styles.stockItemClose}>{close}</Text>
         <Text style={styles.stockItemPer1}>
-          {Math.floor(((close - open) / open) * 100 * 100) / 100}
+          {Math.floor(((close - open) / open) * 100 * 100) / 100} %
         </Text>
       </TouchableOpacity>
     );
   };
-  useEffect(() => {
-    const diff = watchList.filter((item) => detailStock.indexOf(item) === -1);
-    const workList = diff;
-    //过滤
-    for (const symbol of workList) {
-      fetch(`${ServerURL}/history?symbol=${symbol}`)
-        .then((data) => data.json())
-        .then((data) =>
-          data.map((item) => ({
-            key: item.timestamp,
-            symbol: item.symbol,
-            name: item.name,
-            open: item.open,
-            high: item.high,
-            low: item.low,
-            close: item.close,
-            volumes: item.volumes,
-          }))
-        )
-        .then((data) => {
-          console.log(data[0]);
-          if (watchData.indexOf(data[0]) === -1) {
-            setWatchData((watchData) => [...watchData, data[0]]);
-          } else {
-            console.log('yicunzai ');
-            return;
-          }
-        });
+  function equar(a, b) {
+    if (a.length !== b.length) {
+      return false;
+    } else {
+      for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) {
+          return false;
+        }
+      }
+      return true;
     }
-    setDetailStock(watchList);
+  }
+
+  useEffect(() => {
+    // const diff = watchList.filter((item) => detailStock.indexOf(item) === -1);
+    // const workList = diff;
+    //过滤
+    console.log('localList', localList);
+    console.log('watchList', watchList);
+    if (!equar(localList, watchList)) {
+      setLocalList(watchList);
+      setWatchData([]);
+      for (const symbol of watchList) {
+        console.log('请求发送');
+        fetch(`${ServerURL}/history?symbol=${symbol}`)
+          .then((data) => data.json())
+          .then((data) =>
+            data.map((item) => ({
+              key: item.timestamp,
+              symbol: item.symbol,
+              name: item.name,
+              open: item.open,
+              high: item.high,
+              low: item.low,
+              close: item.close,
+              volumes: item.volumes,
+            }))
+          )
+          .then((data) => {
+            console.log('watchData', watchData);
+            setWatchData((watchData) => [...watchData, data[0]]);
+          })
+          .catch((e) => {
+            console.warn(e);
+          });
+      }
+    }
     // FixMe: fetch stock data from the server for any new symbols added to the watchlist and save in local StocksScreen state
   }, [watchList]);
-
+  // setWatchData(new Set(watchData.map(JSON.stringify)));
+  // const stockFilter = new Set(watchData.map(JSON.stringify));
+  // setWatchData(stockFilter);
+  // console.log(new Set(watchData.map(JSON.stringify)));
+  console.log(watchData);
   return (
     <View style={styles.container}>
       <ScrollView>
@@ -99,6 +127,7 @@ export default function StocksScreen({ route }) {
       </ScrollView>
 
       <StockDetail></StockDetail>
+
       {/* FixMe: add children here! */}
     </View>
   );

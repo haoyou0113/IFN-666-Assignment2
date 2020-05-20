@@ -23,9 +23,13 @@ const SearchBar = (props) => {
       let args = arguments;
       if (timer) {
         clearTimeout(timer); //进入该分支语句，说明当前正在一个计时过程中，并且又触发了相同事件。所以要取消当前的计时，重新开始计时
-        timer = setTimeout(fn(...args), delay);
+        timer = setTimeout(function () {
+          fn(...args);
+        }, delay);
       } else {
-        timer = setTimeout(fn(...args), delay); // 进入该分支说明当前并没有在计时，那么就开始一个计时
+        timer = setTimeout(function () {
+          fn(...args);
+        }, delay); // 进入该分支说明当前并没有在计时，那么就开始一个计时
       }
     };
   }

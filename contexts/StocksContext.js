@@ -24,8 +24,6 @@ export const useStocksContext = () => {
       const newSymbols = [...state, newSymbol];
       setState((state) => [...state, newSymbol]);
       AsyncStorage.setItem(stateName, JSON.stringify(newSymbols));
-    } else {
-      alert('1');
     }
 
     //FixMe: add the new symbol to the watchlist, save it in useStockContext state and persist to AsyncStorage
