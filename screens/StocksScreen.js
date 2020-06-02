@@ -18,7 +18,7 @@ export default function StocksScreen({ route }) {
   const [localList, setLocalList] = useState([]);
   const [state, setState] = useState(watchList);
   const [watchData, setWatchData] = useState([]);
-  const [curDetail, setCurDetail] = useState('');
+  const [curDetail, setCurDetail] = useState(null);
   const [detailStock, setDetailStock] = useState([]);
 
   console.log('watchList', watchList);
@@ -28,39 +28,64 @@ export default function StocksScreen({ route }) {
   const clearAsyncStorage = async () => {
     AsyncStorage.clear();
   };
-  const StockDetail = (curDetail) => {
-    return (
-      <View style={styles.detail}>
-        <Text style={styles.detailItem}>Company Name</Text>
-        <Text style={styles.detailItem}>OPEN</Text>
-        <Text style={styles.detailItem}>LOW</Text>
-        <Text style={styles.detailItem}>CLOSE</Text>
-        <Text style={styles.detailItem}>HIGH</Text>
-        <Text style={styles.detailItem}>VOLUME</Text>
-        <TouchableOpacity onPress={clearAsyncStorage}>
-          <Text style={styles.detailItem}>clear</Text>
-        </TouchableOpacity>
-      </View>
-    );
+  const StockDetail = () => {
+    if (curDetail) {
+      const { name, open, high, low, volumes, close } = curDetail;
+      return (
+        <View style={styles.detail}>
+          <Text style={styles.detailName}>{name}</Text>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailTitle}>OPEN</Text>
+            <Text style={styles.detailContent}>{open}</Text>
+            <Text style={styles.detailTitle}>LOW</Text>
+            <Text style={styles.detailContent}>{low}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailTitle}>CLOSE</Text>
+            <Text style={styles.detailContent}>{close}</Text>
+            <Text style={styles.detailTitle}>HIGH</Text>
+            <Text style={styles.detailContent}>{high}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailTitle}>VOLUME</Text>
+            <Text style={styles.detailContent}>{volumes}</Text>
+            <Text style={styles.detailTitle}></Text>
+            <Text style={styles.detailContent}></Text>
+          </View>
+          {/* <TouchableOpacity onPress={clearAsyncStorage}>
+            <Text style={styles.detailItem}>clear</Text>
+          </TouchableOpacity> */}
+        </View>
+      );
+    } else {
+      return <View />;
+    }
   };
+  const setDetail = (symbol) => {
+    const result = watchData.filter((item) => item.symbol === symbol);
+    setCurDetail(() => result[0]);
+  };
+
   const StockItem = (props) => {
     const { symbol, close, open } = props.item;
+    const stockPer = Math.floor(((close - open) / open) * 100 * 100) / 100;
     return (
       <TouchableOpacity
         style={styles.stockItem}
         onPress={() => {
-          console.log(symbol);
+          setDetail(symbol);
         }}
       >
         <Text style={styles.stockItemSymbol}>{symbol}</Text>
         <Text style={styles.stockItemClose}>{close}</Text>
-        <Text style={styles.stockItemPer1}>
-          {Math.floor(((close - open) / open) * 100 * 100) / 100} %
+        <Text style={stockPer > 0 ? styles.stockPerGreen : styles.stockPerRed}>
+          {stockPer}%
         </Text>
       </TouchableOpacity>
     );
   };
   function equar(a, b) {
+    // avoid shaking
     if (a.length !== b.length) {
       return false;
     } else {
@@ -74,16 +99,10 @@ export default function StocksScreen({ route }) {
   }
 
   useEffect(() => {
-    // const diff = watchList.filter((item) => detailStock.indexOf(item) === -1);
-    // const workList = diff;
-    //过滤
-    console.log('localList', localList);
-    console.log('watchList', watchList);
     if (!equar(localList, watchList)) {
       setLocalList(watchList);
       setWatchData([]);
       for (const symbol of watchList) {
-        console.log('请求发送');
         fetch(`${ServerURL}/history?symbol=${symbol}`)
           .then((data) => data.json())
           .then((data) =>
@@ -99,35 +118,27 @@ export default function StocksScreen({ route }) {
             }))
           )
           .then((data) => {
-            console.log('watchData', watchData);
             setWatchData((watchData) => [...watchData, data[0]]);
           })
-          .catch((e) => {
-            console.warn(e);
+          .catch((error) => {
+            console.warn(error);
           });
       }
     }
     // FixMe: fetch stock data from the server for any new symbols added to the watchlist and save in local StocksScreen state
   }, [watchList]);
-  // setWatchData(new Set(watchData.map(JSON.stringify)));
-  // const stockFilter = new Set(watchData.map(JSON.stringify));
-  // setWatchData(stockFilter);
-  // console.log(new Set(watchData.map(JSON.stringify)));
-  console.log(watchData);
+
   return (
     <View style={styles.container}>
-      <ScrollView>
-        <FlatList
-          data={watchData}
-          renderItem={StockItem}
-          keyExtractor={(item, index) => {
-            return index.toString();
-          }}
-        ></FlatList>
-      </ScrollView>
+      <FlatList
+        data={watchData}
+        renderItem={StockItem}
+        keyExtractor={(item, index) => {
+          return index.toString();
+        }}
+      ></FlatList>
 
-      <StockDetail></StockDetail>
-
+      <StockDetail />
       {/* FixMe: add children here! */}
     </View>
   );
@@ -141,42 +152,90 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   stockItem: {
+    flex: 1,
+    alignItems: 'center',
+    flexDirection: 'row',
     borderWidth: 1,
+    height: scaleSize(55),
     padding: scaleSize(10),
-    backgroundColor: 'black',
+    paddingBottom: scaleSize(3),
+    paddingTop: scaleSize(3),
+    backgroundColor: '#010101',
+    justifyContent: 'center',
     borderBottomColor: '#585858',
   },
   stockItemSymbol: {
-    fontSize: scaleSize(16),
-    flex: 3,
-    color: 'white',
-    textAlign: 'right',
+    textAlignVertical: 'center',
+    fontSize: scaleSize(20),
+    width: scaleSize(150),
+    color: '#fff',
+    textAlign: 'left',
     paddingRight: scaleSize(20),
   },
   stockItemClose: {
-    fontSize: scaleSize(16),
-    flex: 3,
-    color: 'white',
+    fontSize: scaleSize(20),
+    width: scaleSize(100),
+    color: '#fff',
     textAlign: 'right',
     paddingRight: scaleSize(20),
   },
-  stockItemPer1: {
-    fontSize: scaleSize(16),
-    flex: 2,
-    backgroundColor: '#4cd964',
+  stockPerGreen: {
+    backgroundColor: '#4CDA64',
+    fontSize: scaleSize(20),
+    width: scaleSize(100),
+    height: scaleSize(40),
+    paddingTop: scaleSize(7),
+    paddingRight: scaleSize(5),
     textAlign: 'right',
     borderRadius: 10,
-  },
-  stockItemPer1: {
-    borderWidth: 1,
-    padding: scaleSize(10),
-    backgroundColor: 'black',
-    borderBottomColor: '#585858',
-  },
-  detail: {},
-
-  detailItem: {
+    alignItems: 'center',
     color: '#fff',
-    backgroundColor: 'blue',
+    overflow: 'hidden',
+  },
+  stockPerRed: {
+    backgroundColor: '#F53931',
+    fontSize: scaleSize(20),
+    width: scaleSize(100),
+    height: scaleSize(40),
+    paddingTop: scaleSize(7),
+    paddingRight: scaleSize(5),
+    textAlign: 'right',
+    borderRadius: 10,
+    alignItems: 'center',
+    color: '#fff',
+    overflow: 'hidden',
+  },
+  detail: {
+    backgroundColor: '#222222',
+    flex: 0.5,
+    flexDirection: 'column',
+  },
+  detailName: {
+    paddingTop: scaleSize(10),
+    height: scaleSize(60),
+    fontSize: scaleSize(30),
+    textAlign: 'center',
+    color: '#fff',
+  },
+
+  detailRow: {
+    paddingTop: scaleSize(10),
+    flex: 1,
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderColor: '#474747',
+  },
+  detailTitle: {
+    marginLeft: scaleSize(5),
+    flex: 1,
+    color: '#4F4F4F',
+    textAlign: 'left',
+    fontSize: scaleSize(15),
+  },
+  detailContent: {
+    flex: 1,
+    color: '#fff',
+    fontSize: scaleSize(15),
+    textAlign: 'right',
   },
 });

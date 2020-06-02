@@ -15,7 +15,7 @@ export const StocksProvider = ({ children }) => {
 
 export const useStocksContext = () => {
   const [state, setState] = useContext(StocksContext);
-  // const [newSymbol, setNewSymbol] = useState('');
+  const [stateName, setStateName] = useState('TASKS');
 
   // can put more code here
 
@@ -28,7 +28,7 @@ export const useStocksContext = () => {
 
     //FixMe: add the new symbol to the watchlist, save it in useStockContext state and persist to AsyncStorage
   }
-  const stateName = 'stocks123123';
+
   useEffect(() => {
     // FixMe: Retrieve watchlist from persistent storage
     AsyncStorage.getItem(stateName)

@@ -43,7 +43,7 @@ const SearchBar = (props) => {
   }, 200);
   return (
     <View>
-      <Text style={{ fontSize: 15, color: 'white' }}>
+      <Text style={styles.searchBarTitle}>
         Type a company name or stock symbol:
       </Text>
       <View style={styles.searchBar}>
@@ -51,7 +51,7 @@ const SearchBar = (props) => {
           style={{ padding: 7 }}
           name='ios-search'
           size={20}
-          color='white'
+          color='#fff'
         />
         <TextInput
           style={styles.input}
@@ -77,13 +77,14 @@ export default function SearchScreen({ navigation }) {
     const { symbol, name } = props.item;
     return (
       <TouchableOpacity
+        style={styles.itemContainer}
         onPress={() => {
           addToWatchlist(symbol);
           navigation.navigate('Stocks');
         }}
       >
-        <Text style={styles.item}>{symbol}</Text>
-        <Text style={styles.item}>{name}</Text>
+        <Text style={styles.item1}>{symbol}</Text>
+        <Text style={styles.item2}>{name}</Text>
       </TouchableOpacity>
     );
   };
@@ -112,7 +113,6 @@ export default function SearchScreen({ navigation }) {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
-        {/* FixMe: add children here! */}
         <SearchBar setSearchInput={setSearchInput}></SearchBar>
         <FlatList
           data={dataDisplayed}
@@ -133,10 +133,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1e1e1e',
+    backgroundColor: '#1F1F1F',
     borderRadius: 10,
+    height: scaleSize(40),
+  },
+  searchBarTitle: {
+    marginTop: scaleSize(20),
+    height: scaleSize(23),
+    fontSize: scaleSize(15),
+    color: '#fff',
+    textAlign: 'center',
   },
   input: {
+    fontSize: scaleSize(20),
     flex: 1,
     paddingTop: scaleSize(10),
     paddingRight: scaleSize(10),
@@ -145,9 +154,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#1e1e1e',
     color: '#fff',
   },
-  item: {
+  itemContainer: {
+    paddingTop: scaleSize(5),
+    paddingLeft: scaleSize(5),
+    height: scaleSize(55),
+    borderStyle: 'solid',
+    borderBottomColor: '#7A7A7A',
+    borderBottomWidth: scaleSize(0.5),
+  },
+  item1: {
     color: '#fff',
-    height: 30,
+    fontSize: scaleSize(20),
+  },
+  item2: {
+    color: '#fff',
+    fontSize: scaleSize(15),
   },
   // FixMe: add styles here ...
   // use scaleSize(x) to adjust sizes for small/large screens
