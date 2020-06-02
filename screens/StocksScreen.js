@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   },
   detail: {
     backgroundColor: '#222222',
-    flex: 0.5,
+    height: scaleSize(150),
     flexDirection: 'column',
   },
   detailName: {
