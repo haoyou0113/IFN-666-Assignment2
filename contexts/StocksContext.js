@@ -17,20 +17,15 @@ export const useStocksContext = () => {
   const [state, setState] = useContext(StocksContext);
   const [stateName, setStateName] = useState('TASKS');
 
-  // can put more code here
-
   function addToWatchlist(newSymbol) {
     if (state.indexOf(newSymbol) === -1) {
       const newSymbols = [...state, newSymbol];
       setState((state) => [...state, newSymbol]);
       AsyncStorage.setItem(stateName, JSON.stringify(newSymbols));
     }
-
-    //FixMe: add the new symbol to the watchlist, save it in useStockContext state and persist to AsyncStorage
   }
 
   useEffect(() => {
-    // FixMe: Retrieve watchlist from persistent storage
     AsyncStorage.getItem(stateName)
       .then((savedString) => JSON.parse(savedString))
       .then((savedStocks) => savedStocks && setState(savedStocks));

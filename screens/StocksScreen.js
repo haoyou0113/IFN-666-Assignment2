@@ -4,7 +4,6 @@ import {
   View,
   TouchableOpacity,
   FlatList,
-  ScrollView,
   AsyncStorage,
   Text /* include other react-native components here as needed */,
 } from 'react-native';
@@ -16,10 +15,8 @@ import { scaleSize } from '../constants/Layout';
 export default function StocksScreen({ route }) {
   const { ServerURL, watchList } = useStocksContext();
   const [localList, setLocalList] = useState([]);
-  const [state, setState] = useState(watchList);
   const [watchData, setWatchData] = useState([]);
   const [curDetail, setCurDetail] = useState(null);
-  const [detailStock, setDetailStock] = useState([]);
 
   console.log('watchList', watchList);
   console.log('watchData', watchData);
@@ -84,8 +81,7 @@ export default function StocksScreen({ route }) {
       </TouchableOpacity>
     );
   };
-  function equar(a, b) {
-    // avoid shaking
+  function equal(a, b) {
     if (a.length !== b.length) {
       return false;
     } else {
@@ -99,7 +95,7 @@ export default function StocksScreen({ route }) {
   }
 
   useEffect(() => {
-    if (!equar(localList, watchList)) {
+    if (!equal(localList, watchList)) {
       setLocalList(watchList);
       setWatchData([]);
       for (const symbol of watchList) {

@@ -13,23 +13,22 @@ import { useStocksContext } from '../contexts/StocksContext';
 import { scaleSize } from '../constants/Layout';
 import { Ionicons } from '@expo/vector-icons';
 
-// FixMe: implement other components and functions used in SearchScreen here (don't just put all the JSX in SearchScreen below)
 const SearchBar = (props) => {
   const { setSearchInput } = props;
 
   function debounce(fn, delay) {
-    let timer = null; //借助闭包
+    let timer = null;
     return function () {
       let args = arguments;
       if (timer) {
-        clearTimeout(timer); //进入该分支语句，说明当前正在一个计时过程中，并且又触发了相同事件。所以要取消当前的计时，重新开始计时
+        clearTimeout(timer);
         timer = setTimeout(function () {
           fn(...args);
         }, delay);
       } else {
         timer = setTimeout(function () {
           fn(...args);
-        }, delay); // 进入该分支说明当前并没有在计时，那么就开始一个计时
+        }, delay);
       }
     };
   }
@@ -71,8 +70,6 @@ export default function SearchScreen({ navigation }) {
   const [dataDisplayed, setDataDisplayed] = useState([]);
   const [searchInput, setSearchInput] = useState('');
 
-  // can put more code here
-
   const SearchItem = (props) => {
     const { symbol, name } = props.item;
     return (
@@ -89,7 +86,6 @@ export default function SearchScreen({ navigation }) {
     );
   };
   useEffect(() => {
-    // FixMe: fetch symbol names from the server and save in local SearchScreen state
     fetch(`${ServerURL}/all`)
       .then((data) => data.json())
       .then((data) =>
